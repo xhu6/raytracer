@@ -1,4 +1,5 @@
 use image::{Rgb, RgbImage};
+mod ray;
 
 fn f(x: u32, y: u32) -> Rgb<u8> {
     Rgb([x as u8, y as u8, 0])
