@@ -2,6 +2,7 @@ use core::f64;
 use glam::{dvec3, DVec3};
 use image::{Rgb, RgbImage};
 
+use crate::hittable::HittableList;
 use crate::{camera::Camera, hittable::Hittable, ray::Ray, sphere::Sphere};
 
 mod camera;
@@ -17,11 +18,8 @@ fn to_rgb(data: DVec3) -> Rgb<u8> {
     Rgb(data.to_array().map(|x| (x * 255.999).floor() as u8))
 }
 
-fn get_colour(ray: Ray) -> Rgb<u8> {
-    let center = dvec3(0.0, 0.0, -1.0);
-    let sphere = Sphere::new(center, 0.5);
-
-    if let Some(hit) = sphere.hit(&ray, 0.0, f64::MAX) {
+fn get_colour(world: &HittableList, ray: Ray) -> Rgb<u8> {
+    if let Some(hit) = world.hit(&ray, 0.0, f64::MAX) {
         return to_rgb(hit.normal.map(|x| 0.5 * (x + 1.0)));
     }
 
@@ -30,16 +28,21 @@ fn get_colour(ray: Ray) -> Rgb<u8> {
     to_rgb(result)
 }
 
-fn f(cam: &Camera, x: u32, y: u32) -> Rgb<u8> {
+fn f(world: &HittableList, cam: &Camera, x: u32, y: u32) -> Rgb<u8> {
     let ray = cam.sample(
         (x as f64 + 0.5) / WIDTH as f64,
         (y as f64 + 0.5) / HEIGHT as f64,
     );
-    get_colour(ray)
+    get_colour(world, ray)
 }
 
 fn main() {
+    let mut world = HittableList::new();
+
+    world.add(Sphere::new(dvec3(0.0, 0.0, -1.0), 0.5));
+    world.add(Sphere::new(dvec3(0.0, -100.5, -1.0), 100.0));
+
     let cam = Camera::new(1.0, 2.0, 2.0, DVec3::ZERO);
-    let img = RgbImage::from_fn(WIDTH, HEIGHT, |x, y| f(&cam, x, y));
+    let img = RgbImage::from_fn(WIDTH, HEIGHT, |x, y| f(&world, &cam, x, y));
     img.save("out.png").unwrap();
 }
