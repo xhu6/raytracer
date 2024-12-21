@@ -4,9 +4,6 @@ use crate::ray::Ray;
 
 pub struct Camera {
     position: DVec3,
-    focal_length: f64,
-    viewport_width: f64,
-    viewport_height: f64,
     viewport_u: DVec3,
     viewport_v: DVec3,
     top_left: DVec3,
@@ -30,9 +27,6 @@ impl Camera {
 
         Camera {
             position,
-            focal_length,
-            viewport_width,
-            viewport_height,
             viewport_u,
             viewport_v,
             top_left,
