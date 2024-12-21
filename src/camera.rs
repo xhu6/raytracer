@@ -12,8 +12,8 @@ pub struct Camera {
 impl Camera {
     pub fn new(
         focal_length: f64,
-        viewport_height: f64,
         viewport_width: f64,
+        viewport_height: f64,
         position: DVec3,
     ) -> Self {
         // These must all be perpendicular to each other.
