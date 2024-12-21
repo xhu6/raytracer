@@ -1,11 +1,13 @@
 use glam::{dvec3, DVec3};
 use image::{Rgb, RgbImage};
+use sphere::Sphere;
 
 use crate::camera::Camera;
 use crate::ray::Ray;
 
 mod camera;
 mod ray;
+mod sphere;
 mod testing;
 
 const WIDTH: u32 = 1024;
@@ -16,6 +18,11 @@ fn to_rgb(data: DVec3) -> Rgb<u8> {
 }
 
 fn get_colour(ray: Ray) -> Rgb<u8> {
+    let sphere = Sphere::new(dvec3(0.0, 0.0, -1.0), 0.5);
+    if sphere.hit(&ray) {
+        return Rgb([255, 0, 0]);
+    }
+
     let a = 0.5 * (ray.direction.y + 1.0);
     let result = (1.0 - a) * DVec3::ONE + a * dvec3(0.5, 0.7, 1.0);
     to_rgb(result)
