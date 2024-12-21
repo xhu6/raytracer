@@ -1,13 +1,12 @@
-use crate::testing::assert_approx_eq;
 use glam::DVec3;
 
 pub struct Ray {
-    origin: DVec3,
-    direction: DVec3,
+    pub origin: DVec3,
+    pub direction: DVec3,
 }
 
 impl Ray {
-    fn new(origin: DVec3, direction: DVec3) -> Self {
+    pub fn new(origin: DVec3, direction: DVec3) -> Self {
         Self {
             origin,
             direction: direction.normalize(),
@@ -22,6 +21,7 @@ impl Ray {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::testing::assert_approx_eq;
     use glam::dvec3;
 
     #[test]
