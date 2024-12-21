@@ -1,13 +1,11 @@
 use core::f64;
-
 use glam::{dvec3, DVec3};
 use image::{Rgb, RgbImage};
-use sphere::Sphere;
 
-use crate::camera::Camera;
-use crate::ray::Ray;
+use crate::{camera::Camera, hittable::Hittable, ray::Ray, sphere::Sphere};
 
 mod camera;
+mod hittable;
 mod ray;
 mod sphere;
 mod testing;
@@ -23,9 +21,8 @@ fn get_colour(ray: Ray) -> Rgb<u8> {
     let center = dvec3(0.0, 0.0, -1.0);
     let sphere = Sphere::new(center, 0.5);
 
-    if let Some(distance) = sphere.hit(&ray, 0.0, f64::MAX) {
-        let normal = (ray.at(distance) - center).normalize();
-        return to_rgb(normal.map(|x| 0.5 * (x + 1.0)));
+    if let Some(hit) = sphere.hit(&ray, 0.0, f64::MAX) {
+        return to_rgb(hit.normal.map(|x| 0.5 * (x + 1.0)));
     }
 
     let a = 0.5 * (ray.direction.y + 1.0);

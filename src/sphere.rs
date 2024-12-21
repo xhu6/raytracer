@@ -1,6 +1,9 @@
 use glam::DVec3;
 
-use crate::ray::Ray;
+use crate::{
+    hittable::{Hit, Hittable},
+    ray::Ray,
+};
 
 pub struct Sphere {
     position: DVec3,
@@ -11,8 +14,10 @@ impl Sphere {
     pub fn new(position: DVec3, radius: f64) -> Self {
         Sphere { position, radius }
     }
+}
 
-    pub fn hit(&self, ray: &Ray, min: f64, max: f64) -> Option<f64> {
+impl Hittable for Sphere {
+    fn hit(&self, ray: &Ray, min: f64, max: f64) -> Option<Hit> {
         let tmp = self.position - ray.origin;
 
         // The quadratic equation but 2 is factored out
@@ -36,5 +41,20 @@ impl Sphere {
             .filter(|x| (min..max).contains(x))
             .next()
             .copied()
+            .map(|x| {
+                let point = ray.at(x);
+                let outward_normal = (point - self.position).normalize();
+                let front_face = outward_normal.dot(ray.direction) < 0.0;
+                Hit {
+                    point,
+                    distance: x,
+                    normal: if front_face {
+                        outward_normal
+                    } else {
+                        -outward_normal
+                    },
+                    front_face,
+                }
+            })
     }
 }
