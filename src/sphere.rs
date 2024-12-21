@@ -12,15 +12,29 @@ impl Sphere {
         Sphere { position, radius }
     }
 
-    pub fn hit(&self, ray: &Ray) -> bool {
+    pub fn hit(&self, ray: &Ray, min: f64, max: f64) -> Option<f64> {
         let tmp = self.position - ray.origin;
 
+        // The quadratic equation but 2 is factored out
         let a = ray.direction.length_squared();
-        let b = -2.0 * ray.direction.dot(tmp);
+        let h = ray.direction.dot(tmp);
         let c = tmp.length_squared() - self.radius * self.radius;
 
-        let discriminant = b * b - 4.0 * a * c;
+        let discriminant = h * h - a * c;
 
-        discriminant >= 0.0
+        // No solutions
+        if discriminant < 0.0 {
+            return None;
+        }
+
+        // 1st root will **always** be smaller
+        let sqrtd = discriminant.sqrt();
+        let roots = [(h - sqrtd) / a, (h + sqrtd) / a];
+
+        roots
+            .iter()
+            .filter(|x| (min..max).contains(x))
+            .next()
+            .copied()
     }
 }

@@ -1,3 +1,5 @@
+use core::f64;
+
 use glam::{dvec3, DVec3};
 use image::{Rgb, RgbImage};
 use sphere::Sphere;
@@ -18,9 +20,12 @@ fn to_rgb(data: DVec3) -> Rgb<u8> {
 }
 
 fn get_colour(ray: Ray) -> Rgb<u8> {
-    let sphere = Sphere::new(dvec3(0.0, 0.0, -1.0), 0.5);
-    if sphere.hit(&ray) {
-        return Rgb([255, 0, 0]);
+    let center = dvec3(0.0, 0.0, -1.0);
+    let sphere = Sphere::new(center, 0.5);
+
+    if let Some(distance) = sphere.hit(&ray, 0.0, f64::MAX) {
+        let normal = (ray.at(distance) - center).normalize();
+        return to_rgb(normal.map(|x| 0.5 * (x + 1.0)));
     }
 
     let a = 0.5 * (ray.direction.y + 1.0);
