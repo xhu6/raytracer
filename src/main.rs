@@ -2,8 +2,12 @@ use core::f64;
 use glam::{dvec3, DVec3};
 use image::{Rgb, RgbImage};
 
-use crate::hittable::HittableList;
-use crate::{camera::Camera, hittable::Hittable, ray::Ray, sphere::Sphere};
+use crate::{
+    camera::Camera,
+    hittable::{Hittable, HittableList},
+    ray::Ray,
+    sphere::Sphere,
+};
 
 mod camera;
 mod hittable;
