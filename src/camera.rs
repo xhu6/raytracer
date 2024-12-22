@@ -86,8 +86,8 @@ impl Camera {
             top_left,
             width,
             height,
-            samples_per_pixel: 10,
-            max_depth: 10,
+            samples_per_pixel: 8,
+            max_depth: 4,
         }
     }
 
