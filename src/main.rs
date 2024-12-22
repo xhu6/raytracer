@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use core::f64;
 use glam::{dvec3, DVec3};
 
@@ -9,8 +11,8 @@ mod ray;
 mod sphere;
 mod testing;
 
-const WIDTH: u32 = 1024;
-const HEIGHT: u32 = 1024;
+const WIDTH: u32 = 1920;
+const HEIGHT: u32 = 800;
 
 fn main() {
     let mut world = HittableList::new();
@@ -20,6 +22,12 @@ fn main() {
 
     let aspect_ratio = WIDTH as f64 / HEIGHT as f64;
     let cam = Camera::new(1.0, aspect_ratio, 90.0, DVec3::ZERO);
+
+    let time = Instant::now();
     let img = cam.render(&world, WIDTH, HEIGHT);
+    let duration = time.elapsed();
+
+    println!("Took {:.2?}", duration);
+
     img.save("out.png").unwrap();
 }

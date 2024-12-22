@@ -1,3 +1,6 @@
+use core::f64;
+
+use fastrand;
 use glam::{dvec3, DVec3};
 use image::{Rgb, RgbImage};
 
@@ -12,6 +15,7 @@ pub struct Camera {
     viewport_u: DVec3,
     viewport_v: DVec3,
     top_left: DVec3,
+    samples_per_pixel: u32,
 }
 
 // NOTE: Shouldn't be here but will keep for now
@@ -39,6 +43,7 @@ impl Camera {
             viewport_u,
             viewport_v,
             top_left,
+            samples_per_pixel: 10,
         }
     }
 
@@ -48,23 +53,41 @@ impl Camera {
         Ray::new(self.position, end - self.position)
     }
 
-    pub fn get_pixel(&self, world: &HittableList, ray: &Ray) -> Rgb<u8> {
+    pub fn sample(&self, world: &HittableList, ray: &Ray) -> DVec3 {
         if let Some(hit) = world.hit(&ray, 0.0, f64::MAX) {
-            return to_rgb(hit.normal.map(|x| 0.5 * (x + 1.0)));
+            return hit.normal.map(|x| 0.5 * (x + 1.0));
         }
 
         let a = 0.5 * (ray.direction.y + 1.0);
-        let result = (1.0 - a) * DVec3::ONE + a * dvec3(0.5, 0.7, 1.0);
-        to_rgb(result)
+        (1.0 - a) * DVec3::ONE + a * dvec3(0.5, 0.7, 1.0)
+    }
+
+    pub fn get_pixel(
+        &self,
+        world: &HittableList,
+        width: u32,
+        height: u32,
+        x: u32,
+        y: u32,
+    ) -> Rgb<u8> {
+        let mut out = DVec3::ZERO;
+
+        for _ in 0..self.samples_per_pixel {
+            let ray = self.get_ray(
+                (x as f64 + fastrand::f64()) / width as f64,
+                (y as f64 + fastrand::f64()) / height as f64,
+            );
+            out += self.sample(world, &ray);
+        }
+        to_rgb(out / self.samples_per_pixel as f64)
     }
 
     pub fn render(&self, world: &HittableList, width: u32, height: u32) -> RgbImage {
+        // Make RNG deterministic
+        fastrand::seed(0);
+
         RgbImage::from_fn(width, height, |x, y| {
-            let ray = self.get_ray(
-                (x as f64 + 0.5) / width as f64,
-                (y as f64 + 0.5) / height as f64,
-            );
-            self.get_pixel(world, &ray)
+            self.get_pixel(world, width, height, x, y)
         })
     }
 }
