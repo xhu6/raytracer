@@ -15,6 +15,8 @@ pub struct Camera {
     viewport_u: DVec3,
     viewport_v: DVec3,
     top_left: DVec3,
+    width: u32,
+    height: u32,
     samples_per_pixel: u32,
 }
 
@@ -25,8 +27,21 @@ fn to_rgb(data: DVec3) -> Rgb<u8> {
         .map(|x| (x.clamp(0.0, 0.999) * 256.0).floor() as u8))
 }
 
+fn random_square() -> (f64, f64) {
+    (fastrand::f64() - 0.5, fastrand::f64() - 0.5)
+}
+
 impl Camera {
-    pub fn new(focal_length: f64, aspect_ratio: f64, vfov: f64, position: DVec3) -> Self {
+    // aspect_ratio should match width and height
+    // although some might want "stretched res"
+    pub fn new(
+        focal_length: f64,
+        aspect_ratio: f64,
+        vfov: f64,
+        position: DVec3,
+        width: u32,
+        height: u32,
+    ) -> Self {
         let viewport_height = (vfov.to_radians() / 2.0).tan() * 2.0;
         let viewport_width = viewport_height * aspect_ratio;
 
@@ -43,12 +58,14 @@ impl Camera {
             viewport_u,
             viewport_v,
             top_left,
+            width,
+            height,
             samples_per_pixel: 10,
         }
     }
 
-    // x and y are in [0, 1]
-    pub fn get_ray(&self, u: f64, v: f64) -> Ray {
+    // Values are between [0, 1]
+    pub fn get_ray(&self, (u, v): (f64, f64)) -> Ray {
         let end = self.top_left + self.viewport_u * u + self.viewport_v * v;
         Ray::new(self.position, end - self.position)
     }
@@ -58,42 +75,43 @@ impl Camera {
             return hit.normal.map(|x| 0.5 * (x + 1.0));
         }
 
+        // Background
         let a = 0.5 * (ray.direction.y + 1.0);
         (1.0 - a) * DVec3::ONE + a * dvec3(0.5, 0.7, 1.0)
     }
 
-    pub fn get_pixel(
-        &self,
-        world: &HittableList,
-        width: u32,
-        height: u32,
-        x: u32,
-        y: u32,
-    ) -> Rgb<u8> {
+    pub fn get_uv(&self, x: u32, y: u32) -> (f64, f64) {
+        let (dx, dy) = random_square();
+        (
+            (x as f64 + 0.5 + dx) / self.width as f64,
+            (y as f64 + 0.5 + dy) / self.height as f64,
+        )
+    }
+
+    pub fn render_pixel(&self, world: &HittableList, x: u32, y: u32) -> Rgb<u8> {
         let mut out = DVec3::ZERO;
 
         for _ in 0..self.samples_per_pixel {
-            let ray = self.get_ray(
-                (x as f64 + fastrand::f64()) / width as f64,
-                (y as f64 + fastrand::f64()) / height as f64,
-            );
+            let uv = self.get_uv(x, y);
+            let ray = self.get_ray(uv);
             out += self.sample(world, &ray);
         }
+
         to_rgb(out / self.samples_per_pixel as f64)
     }
 
-    pub fn render(&self, world: &HittableList, width: u32, height: u32) -> RgbImage {
+    pub fn render(&self, world: &HittableList) -> RgbImage {
         // Make RNG deterministic
         fastrand::seed(0);
 
-        RgbImage::from_fn(width, height, |x, y| {
-            self.get_pixel(world, width, height, x, y)
+        RgbImage::from_fn(self.width, self.height, |x, y| {
+            self.render_pixel(world, x, y)
         })
     }
 }
 
 impl Default for Camera {
     fn default() -> Self {
-        Camera::new(1.0, 1.0, 1.0, DVec3::ZERO)
+        Camera::new(1.0, 1.0, 90.0, DVec3::ZERO, 1920, 1080)
     }
 }
