@@ -1,8 +1,8 @@
 use core::f64;
-
 use fastrand;
 use glam::{dvec3, DVec3};
 use image::{Rgb, RgbImage};
+use std::f64::consts::PI;
 
 use crate::{
     hittable::{Hittable, HittableList},
@@ -18,6 +18,7 @@ pub struct Camera {
     width: u32,
     height: u32,
     samples_per_pixel: u32,
+    max_depth: u32,
 }
 
 // NOTE: Shouldn't be here but will keep for now
@@ -27,8 +28,33 @@ fn to_rgb(data: DVec3) -> Rgb<u8> {
         .map(|x| (x.clamp(0.0, 0.999) * 256.0).floor() as u8))
 }
 
+fn nothing() -> (f64, f64) {
+    (0.0, 0.0)
+}
+
 fn random_square() -> (f64, f64) {
     (fastrand::f64() - 0.5, fastrand::f64() - 0.5)
+}
+
+fn random_unit_vector() -> DVec3 {
+    // Randomly distribute along sphere surface
+    let theta = fastrand::f64() * PI;
+    let phi = fastrand::f64() * 2.0 * PI;
+    dvec3(
+        theta.sin() * phi.cos(),
+        theta.sin() * phi.sin(),
+        theta.cos(),
+    )
+}
+
+fn random_on_hemisphere(normal: &DVec3) -> DVec3 {
+    let unit_vector = random_unit_vector();
+
+    if normal.dot(unit_vector) > 0.0 {
+        unit_vector
+    } else {
+        -unit_vector
+    }
 }
 
 impl Camera {
@@ -61,6 +87,7 @@ impl Camera {
             width,
             height,
             samples_per_pixel: 10,
+            max_depth: 10,
         }
     }
 
@@ -70,14 +97,20 @@ impl Camera {
         Ray::new(self.position, end - self.position)
     }
 
-    pub fn sample(&self, world: &HittableList, ray: &Ray) -> DVec3 {
-        if let Some(hit) = world.hit(&ray, 0.0, f64::MAX) {
-            return hit.normal.map(|x| 0.5 * (x + 1.0));
+    pub fn sample(&self, world: &HittableList, ray: &Ray, depth: u32) -> DVec3 {
+        // No light after depth exceeded
+        if depth <= 0 {
+            return DVec3::ZERO;
+        }
+
+        if let Some(hit) = world.hit(&ray, 1e-9, f64::MAX) {
+            let direction = hit.normal + random_unit_vector();
+            return 0.5 * self.sample(world, &Ray::new(hit.point, direction), depth - 1);
         }
 
         // Background
         let a = 0.5 * (ray.direction.y + 1.0);
-        (1.0 - a) * DVec3::ONE + a * dvec3(0.5, 0.7, 1.0)
+        DVec3::ONE.lerp(dvec3(0.5, 0.7, 1.0), a)
     }
 
     pub fn get_uv(&self, x: u32, y: u32) -> (f64, f64) {
@@ -94,7 +127,7 @@ impl Camera {
         for _ in 0..self.samples_per_pixel {
             let uv = self.get_uv(x, y);
             let ray = self.get_ray(uv);
-            out += self.sample(world, &ray);
+            out += self.sample(world, &ray, self.max_depth);
         }
 
         to_rgb(out / self.samples_per_pixel as f64)
@@ -113,5 +146,17 @@ impl Camera {
 impl Default for Camera {
     fn default() -> Self {
         Camera::new(1.0, 1.0, 90.0, DVec3::ZERO, 1920, 1080)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn create_random() {
+        for _ in 0..100 {
+            println!("{}", random_unit_vector().length());
+        }
     }
 }
