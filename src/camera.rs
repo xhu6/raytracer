@@ -21,11 +21,21 @@ pub struct Camera {
     max_depth: u32,
 }
 
+fn linear_to_gamma(data: f64) -> f64 {
+    let gamma = 2.0;
+
+    if data > 0.0 {
+        data.powf(1.0 / gamma)
+    } else {
+        0.0
+    }
+}
+
 // NOTE: Shouldn't be here but will keep for now
 fn to_rgb(data: DVec3) -> Rgb<u8> {
     Rgb(data
         .to_array()
-        .map(|x| (x.clamp(0.0, 0.999) * 256.0).floor() as u8))
+        .map(|x| (linear_to_gamma(x).clamp(0.0, 0.999) * 256.0).floor() as u8))
 }
 
 fn nothing() -> (f64, f64) {
