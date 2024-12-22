@@ -6,6 +6,7 @@ use crate::{
     ray::Ray,
 };
 
+#[derive(Debug)]
 pub struct Camera {
     position: DVec3,
     viewport_u: DVec3,
@@ -15,16 +16,16 @@ pub struct Camera {
 
 // NOTE: Shouldn't be here but will keep for now
 fn to_rgb(data: DVec3) -> Rgb<u8> {
-    Rgb(data.to_array().map(|x| (x * 255.999).floor() as u8))
+    Rgb(data
+        .to_array()
+        .map(|x| (x.clamp(0.0, 0.999) * 256.0).floor() as u8))
 }
 
 impl Camera {
-    pub fn new(
-        focal_length: f64,
-        viewport_width: f64,
-        viewport_height: f64,
-        position: DVec3,
-    ) -> Self {
+    pub fn new(focal_length: f64, aspect_ratio: f64, vfov: f64, position: DVec3) -> Self {
+        let viewport_height = (vfov.to_radians() / 2.0).tan() * 2.0;
+        let viewport_width = viewport_height * aspect_ratio;
+
         // These must all be perpendicular to each other.
         // u: right
         // v: down
