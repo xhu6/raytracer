@@ -1,18 +1,26 @@
+use std::sync::Arc;
+
 use glam::DVec3;
 
 use crate::{
     hittable::{Hit, Hittable},
+    material::Material,
     ray::Ray,
 };
 
 pub struct Sphere {
     position: DVec3,
     radius: f64,
+    material: Arc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(position: DVec3, radius: f64) -> Self {
-        Sphere { position, radius }
+    pub fn new(position: DVec3, radius: f64, material: Arc<dyn Material>) -> Self {
+        Sphere {
+            position,
+            radius,
+            material,
+        }
     }
 }
 
@@ -54,6 +62,7 @@ impl Hittable for Sphere {
                         -outward_normal
                     },
                     front_face,
+                    material: self.material.clone(),
                 }
             })
     }

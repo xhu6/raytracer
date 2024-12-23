@@ -2,10 +2,10 @@ use core::f64;
 use fastrand;
 use glam::{dvec3, DVec3};
 use image::{Rgb, RgbImage};
-use std::f64::consts::PI;
 
 use crate::{
     hittable::{Hittable, HittableList},
+    random::{random_square, random_unit_vector},
     ray::Ray,
 };
 
@@ -38,35 +38,6 @@ fn to_rgb(data: DVec3) -> Rgb<u8> {
         .map(|x| (linear_to_gamma(x).clamp(0.0, 0.999) * 256.0).floor() as u8))
 }
 
-fn nothing() -> (f64, f64) {
-    (0.0, 0.0)
-}
-
-fn random_square() -> (f64, f64) {
-    (fastrand::f64() - 0.5, fastrand::f64() - 0.5)
-}
-
-fn random_unit_vector() -> DVec3 {
-    // Randomly distribute along sphere surface
-    let theta = fastrand::f64() * PI;
-    let phi = fastrand::f64() * 2.0 * PI;
-    dvec3(
-        theta.sin() * phi.cos(),
-        theta.sin() * phi.sin(),
-        theta.cos(),
-    )
-}
-
-fn random_on_hemisphere(normal: &DVec3) -> DVec3 {
-    let unit_vector = random_unit_vector();
-
-    if normal.dot(unit_vector) > 0.0 {
-        unit_vector
-    } else {
-        -unit_vector
-    }
-}
-
 impl Camera {
     // aspect_ratio should match width and height
     // although some might want "stretched res"
@@ -96,8 +67,8 @@ impl Camera {
             top_left,
             width,
             height,
-            samples_per_pixel: 8,
-            max_depth: 4,
+            samples_per_pixel: 16,
+            max_depth: 8,
         }
     }
 
@@ -113,9 +84,12 @@ impl Camera {
             return DVec3::ZERO;
         }
 
-        if let Some(hit) = world.hit(&ray, 1e-9, f64::MAX) {
-            let direction = hit.normal + random_unit_vector();
-            return 0.5 * self.sample(world, &Ray::new(hit.point, direction), depth - 1);
+        if let Some(hit) = world.hit(ray, 1e-9, f64::MAX) {
+            if let Some((new_ray, attenuation)) = hit.material.scatter(ray, &hit) {
+                return attenuation * self.sample(world, &new_ray, depth - 1);
+            }
+
+            return DVec3::ZERO;
         }
 
         // Background
