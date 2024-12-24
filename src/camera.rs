@@ -11,6 +11,9 @@ use crate::{
 #[derive(Debug)]
 pub struct Camera {
     position: DVec3,
+    u: DVec3,
+    v: DVec3,
+    w: DVec3,
     viewport_u: DVec3,
     viewport_v: DVec3,
     top_left: DVec3,
@@ -41,32 +44,40 @@ impl Camera {
     // aspect_ratio should match width and height
     // although some might want "stretched res"
     pub fn new(
-        focal_length: f64,
         aspect_ratio: f64,
         vfov: f64,
         position: DVec3,
+        lookat: DVec3,
+        up: DVec3,
         width: u32,
         height: u32,
     ) -> Self {
         let viewport_height = (vfov.to_radians() / 2.0).tan() * 2.0;
         let viewport_width = viewport_height * aspect_ratio;
+        let focal_length = (lookat - position).length();
 
         // These must all be perpendicular to each other.
-        // u: right
-        // v: down
-        let viewport_u = dvec3(viewport_width, 0.0, 0.0);
-        let viewport_v = dvec3(0.0, -viewport_height, 0.0);
-        let forward = dvec3(0.0, 0.0, -1.0);
-        let top_left = position + forward * focal_length - viewport_u / 2.0 - viewport_v / 2.0;
+        // u: right, v: up, w: forward
+        let w = (lookat - position).normalize();
+        let u = w.cross(up).normalize();
+        let v = u.cross(w).normalize();
+
+        let viewport_u = viewport_width * u;
+        let viewport_v = viewport_height * -v;
+
+        let top_left = position + w - viewport_u / 2.0 - viewport_v / 2.0;
 
         Camera {
             position,
+            u,
+            v,
+            w,
             viewport_u,
             viewport_v,
             top_left,
             width,
             height,
-            samples_per_pixel: 64,
+            samples_per_pixel: 16,
             max_depth: 16,
         }
     }
@@ -125,7 +136,15 @@ impl Camera {
 
 impl Default for Camera {
     fn default() -> Self {
-        Camera::new(1.0, 1.0, 90.0, DVec3::ZERO, 1920, 1080)
+        Camera::new(
+            1.0,
+            90.0,
+            DVec3::ZERO,
+            dvec3(0.0, 0.0, 1.0),
+            dvec3(0.0, 1.0, 0.0),
+            1024,
+            1024,
+        )
     }
 }
 

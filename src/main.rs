@@ -45,7 +45,7 @@ fn main() {
     world.add(Sphere::new(dvec3(1.0, 0.0, -1.0), 0.5, material_right));
 
     let aspect_ratio = WIDTH as f64 / HEIGHT as f64;
-    let cam = Camera::new(1.0, aspect_ratio, 90.0, DVec3::ZERO, WIDTH, HEIGHT);
+    let cam = Camera::new(aspect_ratio, 20.0, dvec3(-2.0, 2.0, 1.0), dvec3(0.0, 0.0, -1.0), dvec3(0.0, 1.0, 0.0), WIDTH, HEIGHT);
 
     let time = Instant::now();
     let img = cam.render(&world);
