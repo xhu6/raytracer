@@ -1,5 +1,6 @@
-use glam::DVec3;
 use std::sync::Arc;
+
+use glam::DVec3;
 
 use crate::{material::Material, ray::Ray};
 
@@ -55,7 +56,7 @@ impl Hittable for HittableList {
         for object in self.objects.iter() {
             if let Some(hit) = object.hit(ray, min, closest) {
                 closest = hit.distance;
-                out = Some(hit)
+                out = Some(hit);
             }
         }
 
