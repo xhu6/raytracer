@@ -1,11 +1,10 @@
 use core::f64;
-use fastrand;
 use glam::{dvec3, DVec3};
 use image::{Rgb, RgbImage};
 
 use crate::{
     hittable::{Hittable, HittableList},
-    random::{random_square, random_unit_vector},
+    random::random_square,
     ray::Ray,
 };
 
@@ -67,8 +66,8 @@ impl Camera {
             top_left,
             width,
             height,
-            samples_per_pixel: 16,
-            max_depth: 8,
+            samples_per_pixel: 64,
+            max_depth: 16,
         }
     }
 
@@ -118,9 +117,6 @@ impl Camera {
     }
 
     pub fn render(&self, world: &HittableList) -> RgbImage {
-        // Make RNG deterministic
-        fastrand::seed(0);
-
         RgbImage::from_fn(self.width, self.height, |x, y| {
             self.render_pixel(world, x, y)
         })
@@ -136,11 +132,4 @@ impl Default for Camera {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn create_random() {
-        for _ in 0..100 {
-            println!("{}", random_unit_vector().length());
-        }
-    }
 }
