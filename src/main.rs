@@ -2,7 +2,7 @@ use std::{sync::Arc, time::Instant};
 
 use core::f64;
 use glam::{dvec3, DVec3};
-use material::{Lambertian, Metal};
+use material::{Dielectric, Lambertian, Metal};
 
 use crate::{camera::Camera, hittable::HittableList, sphere::Sphere};
 
@@ -22,7 +22,7 @@ fn main() {
 
     let material_ground = Arc::new(Lambertian::new(dvec3(0.8, 0.8, 0.0)));
     let material_center = Arc::new(Lambertian::new(dvec3(0.1, 0.2, 0.5)));
-    let material_left = Arc::new(Metal::new(dvec3(0.8, 0.8, 0.8), 0.3));
+    let material_left = Arc::new(Dielectric::new(0.75));
     let material_right = Arc::new(Metal::new(dvec3(0.8, 0.6, 0.2), 1.0));
 
     world.add(Sphere::new(

@@ -15,6 +15,6 @@ pub fn approx_zero(a: DVec3) -> bool {
     approx_zero_with_error(a, ERROR)
 }
 
-pub fn approx_eq(a:DVec3, b: DVec3) -> bool {
+pub fn approx_eq(a: DVec3, b: DVec3) -> bool {
     approx_eq_with_error(a, b, ERROR)
 }

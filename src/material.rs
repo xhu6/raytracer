@@ -53,3 +53,37 @@ impl Material for Metal {
         Some((Ray::new(hit.point, direction), self.albedo))
     }
 }
+
+pub struct Dielectric {
+    refractive_index: f64,
+}
+
+impl Dielectric {
+    pub fn new(refractive_index: f64) -> Self {
+        Dielectric { refractive_index }
+    }
+}
+
+impl Material for Dielectric {
+    fn scatter(&self, ray: &Ray, hit: &Hit) -> Option<(Ray, DVec3)> {
+        // Assume surrounding medium is 1.0 (air)
+        // eta is the ratio of the refractive indexes
+        let eta = if hit.front_face {
+            1.0 / self.refractive_index
+        } else {
+            self.refractive_index
+        };
+
+        // Set upper limit to 1.0 due to rounding errors
+        let cos_theta = (-ray.direction.dot(hit.normal)).min(1.0);
+        let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
+
+        let direction = if eta * sin_theta > 1.0 {
+            ray.direction.reflect(hit.normal)
+        } else {
+            ray.direction.refract(hit.normal, eta)
+        };
+
+        Some((Ray::new(hit.point, direction), DVec3::ONE))
+    }
+}
