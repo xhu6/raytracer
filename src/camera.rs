@@ -48,17 +48,19 @@ impl Camera {
         defocus_angle: f64,
         focal_length: f64,
         position: DVec3,
-        lookat: DVec3,
+        forward: DVec3,
         up: DVec3,
         width: u32,
         height: u32,
+        samples_per_pixel: u32,
+        max_depth: u32,
     ) -> Self {
         let viewport_height = (vfov.to_radians() / 2.0).tan() * 2.0 * focal_length;
         let viewport_width = viewport_height * aspect_ratio;
 
         // These must all be perpendicular to each other.
         // u: right, v: up, w: forward
-        let w = (lookat - position).normalize();
+        let w = forward.normalize();
         let u = w.cross(up).normalize();
         let v = u.cross(w).normalize();
 
@@ -80,10 +82,27 @@ impl Camera {
             top_left,
             width,
             height,
-            samples_per_pixel: 512,
-            max_depth: 64,
+            samples_per_pixel,
+            max_depth,
         }
     }
+
+    pub fn from(params: &CameraParams) -> Self {
+        Camera::new(
+            params.aspect_ratio,
+            params.vfov,
+            params.defocus_angle,
+            params.focal_length,
+            params.position,
+            params.forward,
+            params.up,
+            params.width,
+            params.height,
+            params.samples_per_pixel,
+            params.max_depth,
+        )
+    }
+    
     pub fn sample_defocus_disk(&self) -> DVec3 {
         let scale = random_on_disc();
         self.position + scale.0 * self.defocus_u + scale.1 * self.defocus_v
@@ -144,17 +163,45 @@ impl Camera {
 
 impl Default for Camera {
     fn default() -> Self {
-        Camera::new(
-            1.0,
-            90.0,
-            5.0,
-            1.0,
-            DVec3::ZERO,
-            dvec3(0.0, 0.0, 1.0),
-            dvec3(0.0, 1.0, 0.0),
-            1024,
-            1024,
-        )
+        Camera::from(&CameraParams::default())
+    }
+}
+
+pub struct CameraParams {
+    pub aspect_ratio: f64,
+    pub vfov: f64,
+    pub defocus_angle: f64,
+    pub focal_length: f64,
+    pub position: DVec3,
+    pub forward: DVec3,
+    pub up: DVec3,
+    pub width: u32,
+    pub height: u32,
+    pub samples_per_pixel: u32,
+    pub max_depth: u32,
+}
+
+impl Default for CameraParams {
+    fn default() -> Self {
+        Self {
+            aspect_ratio: 1.0,
+            vfov: 90.0,
+            defocus_angle: 0.0,
+            focal_length: 1.0,
+            position: DVec3::ZERO,
+            forward: dvec3(0.0, 0.0, 1.0),
+            up: dvec3(0.0, 1.0, 0.0),
+            width: 1024,
+            height: 1024,
+            samples_per_pixel: 16,
+            max_depth: 64,
+        }
+    }
+}
+
+impl CameraParams {
+    pub fn to_camera(&self) -> Camera {
+        Camera::from(self)
     }
 }
 
