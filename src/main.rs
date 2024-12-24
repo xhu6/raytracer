@@ -2,7 +2,8 @@ use std::{sync::Arc, time::Instant};
 
 use core::f64;
 use glam::{dvec3, DVec3};
-use material::{Dielectric, Lambertian, Metal};
+use material::{Dielectric, Lambertian, Material, Metal};
+use random::random_colour;
 
 use crate::{camera::Camera, hittable::HittableList, sphere::Sphere};
 
@@ -23,29 +24,61 @@ fn main() {
 
     let mut world = HittableList::new();
 
-    let material_ground = Arc::new(Lambertian::new(dvec3(0.8, 0.8, 0.0)));
-    let material_center = Arc::new(Lambertian::new(dvec3(0.1, 0.2, 0.5)));
-    let material_left = Arc::new(Dielectric::new(1.5));
-    let material_left_bubble = Arc::new(Dielectric::new(1.0/1.5));
-    let material_right = Arc::new(Metal::new(dvec3(0.8, 0.6, 0.2), 1.0));
-
+    let ground_material = Arc::new(Lambertian::new(dvec3(0.5, 0.5, 0.5)));
     world.add(Sphere::new(
-        dvec3(0.0, -100.5, -1.0),
-        100.0,
-        material_ground,
+        dvec3(0.0, -1000.0, 0.0),
+        1000.0,
+        ground_material,
     ));
 
-    world.add(Sphere::new(dvec3(0.0, 0.0, -1.2), 0.5, material_center));
-    world.add(Sphere::new(dvec3(-1.0, 0.0, -1.0), 0.5, material_left));
-    world.add(Sphere::new(
-        dvec3(-1.0, 0.0, -1.0),
-        0.4,
-        material_left_bubble,
-    ));
-    world.add(Sphere::new(dvec3(1.0, 0.0, -1.0), 0.5, material_right));
+    for a in -11..11 {
+        for b in -11..11 {
+            let position = dvec3(
+                a as f64 + 0.9 * fastrand::f64(),
+                0.2,
+                b as f64 + 0.9 * fastrand::f64(),
+            );
+
+            if (position - dvec3(4.0, 0.2, 0.0)).length() < 0.9 {
+                continue;
+            }
+
+            let choose_mat = fastrand::f64();
+            let material: Arc<dyn Material> = if choose_mat < 0.8 {
+                let albedo = random_colour() * random_colour();
+                Arc::new(Lambertian::new(albedo))
+            } else if choose_mat < 0.95 {
+                let albedo = random_colour() / 2.0 + DVec3::splat(0.5);
+                let fuzz = fastrand::f64();
+                Arc::new(Metal::new(albedo, fuzz))
+            } else {
+                Arc::new(Dielectric::new(1.5))
+            };
+
+            world.add(Sphere::new(position, 0.2, material));
+        }
+    }
+
+    let material1 = Arc::new(Dielectric::new(1.5));
+    let material2 = Arc::new(Lambertian::new(dvec3(0.4, 0.2, 0.1)));
+    let material3 = Arc::new(Metal::new(dvec3(0.7, 0.6, 0.5), 0.0));
+
+    world.add(Sphere::new(dvec3(0.0, 1.0, 0.0), 1.0, material1));
+    world.add(Sphere::new(dvec3(-4.0, 1.0, 0.0), 1.0, material2));
+    world.add(Sphere::new(dvec3(4.0, 1.0, 0.0), 1.0, material3));
 
     let aspect_ratio = WIDTH as f64 / HEIGHT as f64;
-    let cam = Camera::new(aspect_ratio, 20.0, dvec3(-2.0, 2.0, 1.0), dvec3(0.0, 0.0, -1.0), dvec3(0.0, 1.0, 0.0), WIDTH, HEIGHT);
+    let cam = Camera::new(
+        aspect_ratio,
+        20.0,
+        0.6,
+        10.0,
+        dvec3(13.0, 2.0, 3.0),
+        dvec3(0.0, 0.0, 0.0),
+        dvec3(0.0, 1.0, 0.0),
+        WIDTH,
+        HEIGHT,
+    );
 
     let time = Instant::now();
     let img = cam.render(&world);

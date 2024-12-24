@@ -9,6 +9,13 @@ pub fn random_square() -> (f64, f64) {
     (fastrand::f64() - 0.5, fastrand::f64() - 0.5)
 }
 
+pub fn random_on_disc() -> (f64, f64) {
+    let theta = fastrand::f64() * 2.0 * PI;
+    let radius = fastrand::f64().sqrt();
+
+    (radius * theta.sin(), radius * theta.cos())
+}
+
 pub fn random_unit_vector() -> DVec3 {
     // Randomly distribute along sphere surface
     let theta = fastrand::f64() * PI;
@@ -28,4 +35,8 @@ pub fn random_on_hemisphere(normal: &DVec3) -> DVec3 {
     } else {
         -unit_vector
     }
+}
+
+pub fn random_colour() -> DVec3 {
+    DVec3::new(fastrand::f64(), fastrand::f64(), fastrand::f64())
 }

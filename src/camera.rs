@@ -4,18 +4,17 @@ use image::{Rgb, RgbImage};
 
 use crate::{
     hittable::{Hittable, HittableList},
-    random::random_square,
+    random::{random_on_disc, random_square},
     ray::Ray,
 };
 
 #[derive(Debug)]
 pub struct Camera {
     position: DVec3,
-    u: DVec3,
-    v: DVec3,
-    w: DVec3,
     viewport_u: DVec3,
     viewport_v: DVec3,
+    defocus_u: DVec3,
+    defocus_v: DVec3,
     top_left: DVec3,
     width: u32,
     height: u32,
@@ -46,15 +45,16 @@ impl Camera {
     pub fn new(
         aspect_ratio: f64,
         vfov: f64,
+        defocus_angle: f64,
+        focal_length: f64,
         position: DVec3,
         lookat: DVec3,
         up: DVec3,
         width: u32,
         height: u32,
     ) -> Self {
-        let viewport_height = (vfov.to_radians() / 2.0).tan() * 2.0;
+        let viewport_height = (vfov.to_radians() / 2.0).tan() * 2.0 * focal_length;
         let viewport_width = viewport_height * aspect_ratio;
-        let focal_length = (lookat - position).length();
 
         // These must all be perpendicular to each other.
         // u: right, v: up, w: forward
@@ -65,27 +65,35 @@ impl Camera {
         let viewport_u = viewport_width * u;
         let viewport_v = viewport_height * -v;
 
-        let top_left = position + w - viewport_u / 2.0 - viewport_v / 2.0;
+        let top_left = position + w * focal_length - viewport_u / 2.0 - viewport_v / 2.0;
+
+        let defocus_radius = focal_length * (defocus_angle / 2.0).to_radians().tan();
+        let defocus_u = u * defocus_radius;
+        let defocus_v = v * defocus_radius;
 
         Camera {
             position,
-            u,
-            v,
-            w,
             viewport_u,
             viewport_v,
+            defocus_u,
+            defocus_v,
             top_left,
             width,
             height,
-            samples_per_pixel: 16,
-            max_depth: 16,
+            samples_per_pixel: 512,
+            max_depth: 64,
         }
+    }
+    pub fn sample_defocus_disk(&self) -> DVec3 {
+        let scale = random_on_disc();
+        self.position + scale.0 * self.defocus_u + scale.1 * self.defocus_v
     }
 
     // Values are between [0, 1]
     pub fn get_ray(&self, (u, v): (f64, f64)) -> Ray {
         let end = self.top_left + self.viewport_u * u + self.viewport_v * v;
-        Ray::new(self.position, end - self.position)
+        let start = self.sample_defocus_disk();
+        Ray::new(start, end - start)
     }
 
     pub fn sample(&self, world: &HittableList, ray: &Ray, depth: u32) -> DVec3 {
@@ -139,6 +147,8 @@ impl Default for Camera {
         Camera::new(
             1.0,
             90.0,
+            5.0,
+            1.0,
             DVec3::ZERO,
             dvec3(0.0, 0.0, 1.0),
             dvec3(0.0, 1.0, 0.0),
