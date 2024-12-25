@@ -1,20 +1,21 @@
-use std::{sync::Arc, time::Instant};
-
-use camera::CameraParams;
-use core::f64;
-use glam::{dvec3, DVec3};
-use material::{Custom, Dielectric, Lambertian, Material, Metal};
-use random::random_colour;
-
-use crate::{camera::Camera, hittable::HittableList, sphere::Sphere};
-
 mod camera;
 mod hittable;
 mod material;
 mod random;
 mod ray;
-mod sphere;
 mod vec;
+
+use crate::{
+    camera::Camera,
+    hittable::{HittableList, Sphere},
+    material::{Custom, Dielectric, Lambertian, Material, Metal},
+    random::random_colour,
+};
+
+use camera::CameraParams;
+use core::f64;
+use glam::{dvec3, DVec3};
+use std::{sync::Arc, time::Instant};
 
 fn main() {
     // Make RNG deterministic
@@ -43,7 +44,7 @@ fn main() {
     params.aspect_ratio = params.width as f64 / params.height as f64;
     params.position = dvec3(0.0, 4.0, -4.0);
     params.forward = (dvec3(0.0, 0.0, 0.0) - params.position).normalize();
-    params.samples_per_pixel = 500;
+    params.samples_per_pixel = 1;
 
     let cam = Camera::from(&params);
 
