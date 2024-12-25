@@ -102,7 +102,7 @@ impl Camera {
             params.max_depth,
         )
     }
-    
+
     pub fn sample_defocus_disk(&self) -> DVec3 {
         let scale = random_on_disc();
         self.position + scale.0 * self.defocus_u + scale.1 * self.defocus_v
