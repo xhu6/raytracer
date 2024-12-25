@@ -1,12 +1,12 @@
-use core::f64;
-use glam::{dvec3, DVec3};
-use image::{Rgb, RgbImage};
-
 use crate::{
     hittable::{Hittable, HittableList},
     random::{random_on_disc, random_square},
     ray::Ray,
 };
+
+use core::f64;
+use glam::{dvec3, DVec3};
+use image::{Rgb, RgbImage};
 
 #[derive(Debug)]
 pub struct Camera {

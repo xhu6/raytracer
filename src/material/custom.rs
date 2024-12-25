@@ -1,6 +1,8 @@
-use glam::{dvec2, dvec3, DVec2, DVec3, Vec3Swizzles};
+use super::traits::Material;
 
-use crate::{hittable::Hit, material::Material, ray::Ray};
+use crate::{hittable::Hit, ray::Ray};
+
+use glam::{dvec2, dvec3, DVec2, DVec3, Vec3Swizzles};
 
 pub struct Custom {}
 

@@ -1,6 +1,8 @@
-use glam::DVec3;
+use super::traits::Material;
 
-use crate::{hittable::Hit, material::traits::Material, ray::Ray};
+use crate::{hittable::Hit, ray::Ray};
+
+use glam::DVec3;
 
 pub struct Dielectric {
     refractive_index: f64,

@@ -1,6 +1,5 @@
-use std::f64::consts::PI;
-
 use glam::{dvec3, DVec3};
+use std::f64::consts::PI;
 
 pub fn nothing() -> (f64, f64) {
     (0.0, 0.0)
