@@ -22,7 +22,9 @@ impl Ray {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     use crate::vec::approx_eq;
+
     use glam::dvec3;
 
     #[test]
