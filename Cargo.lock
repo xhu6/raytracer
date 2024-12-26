@@ -718,6 +718,7 @@ dependencies = [
  "fastrand",
  "glam",
  "image",
+ "rayon",
 ]
 
 [[package]]

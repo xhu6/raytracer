@@ -7,6 +7,7 @@ use crate::{
 use core::f64;
 use glam::{dvec3, DVec3};
 use image::{Rgb, RgbImage};
+use rayon::prelude::*;
 
 #[derive(Debug)]
 pub struct Camera {
@@ -118,6 +119,7 @@ impl Camera {
             return DVec3::ZERO;
         }
 
+        // Avoid intersecting same object by using a small value
         if let Some(hit) = world.hit(ray, 1e-9, f64::MAX) {
             if let Some((new_ray, attenuation)) = hit.material.scatter(ray, &hit) {
                 return attenuation * self.sample(world, &new_ray, depth - 1);
@@ -152,7 +154,7 @@ impl Camera {
     }
 
     pub fn render(&self, world: &HittableList) -> RgbImage {
-        RgbImage::from_fn(self.width, self.height, |x, y| {
+        RgbImage::from_par_fn(self.width, self.height, |x, y| {
             self.render_pixel(world, x, y)
         })
     }
