@@ -40,10 +40,7 @@ fn to_rgb(data: DVec3) -> Rgb<u8> {
 }
 
 impl Camera {
-    // aspect_ratio should match width and height
-    // although some might want "stretched res"
     pub fn new(
-        aspect_ratio: f64,
         vfov: f64,
         defocus_angle: f64,
         focal_length: f64,
@@ -55,6 +52,7 @@ impl Camera {
         samples_per_pixel: u32,
         max_depth: u32,
     ) -> Self {
+        let aspect_ratio = width as f64 / height as f64;
         let viewport_height = (vfov.to_radians() / 2.0).tan() * 2.0 * focal_length;
         let viewport_width = viewport_height * aspect_ratio;
 
@@ -89,7 +87,6 @@ impl Camera {
 
     pub fn from(params: &CameraParams) -> Self {
         Camera::new(
-            params.aspect_ratio,
             params.vfov,
             params.defocus_angle,
             params.focal_length,
@@ -168,7 +165,6 @@ impl Default for Camera {
 }
 
 pub struct CameraParams {
-    pub aspect_ratio: f64,
     pub vfov: f64,
     pub defocus_angle: f64,
     pub focal_length: f64,
@@ -184,7 +180,6 @@ pub struct CameraParams {
 impl Default for CameraParams {
     fn default() -> Self {
         Self {
-            aspect_ratio: 1.0,
             vfov: 90.0,
             defocus_angle: 0.0,
             focal_length: 1.0,

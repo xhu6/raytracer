@@ -41,7 +41,6 @@ fn main() {
 
     params.width = 1920;
     params.height = 1080;
-    params.aspect_ratio = params.width as f64 / params.height as f64;
     params.position = dvec3(0.0, 4.0, -4.0);
     params.forward = (dvec3(0.0, 0.0, 0.0) - params.position).normalize();
     params.samples_per_pixel = 1;
