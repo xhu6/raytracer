@@ -7,4 +7,5 @@ edition = "2021"
 fastrand = "2.3.0"
 glam = "0.29.2"
 image = { version = "0.25.5", features = ["rayon"] }
+num-complex = "0.4.6"
 rayon = "1.10.0"
