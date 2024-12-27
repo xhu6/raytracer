@@ -10,3 +10,21 @@ pub struct Hit {
     pub front_face: bool,
     pub material: Arc<dyn Material>,
 }
+
+impl Hit {
+    pub fn new(
+        point: DVec3,
+        normal: DVec3,
+        distance: f64,
+        front_face: bool,
+        material: Arc<dyn Material>,
+    ) -> Self {
+        Hit {
+            point,
+            normal,
+            distance,
+            front_face,
+            material,
+        }
+    }
+}

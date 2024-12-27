@@ -7,7 +7,6 @@ use crate::{
 use core::f64;
 use glam::{dvec3, DVec3};
 use image::{Rgb, RgbImage};
-use rayon::prelude::*;
 
 #[derive(Debug)]
 pub struct Camera {
@@ -121,16 +120,21 @@ impl Camera {
 
         // Avoid intersecting same object by using a small value
         if let Some(hit) = world.hit(ray, 1e-9, f64::MAX) {
-            if let Some((new_ray, attenuation)) = hit.material.scatter(ray, &hit) {
-                return attenuation * self.sample(world, &new_ray, depth - 1);
+            if let Some((attenuation, potential_ray)) = hit.material.scatter(ray, &hit) {
+                if let Some(new_ray) = potential_ray {
+                    return attenuation * self.sample(world, &new_ray, depth - 1);
+                } else {
+                    return attenuation;
+                }
             }
 
             return DVec3::ZERO;
         }
 
         // Background
-        let a = 0.5 * (ray.direction.y + 1.0);
-        DVec3::ONE.lerp(dvec3(0.5, 0.7, 1.0), a)
+        // let a = 0.5 * (ray.direction.y + 1.0);
+        // DVec3::ONE.lerp(dvec3(0.5, 0.7, 1.0), a)
+        DVec3::ZERO
     }
 
     pub fn get_uv(&self, x: u32, y: u32) -> (f64, f64) {

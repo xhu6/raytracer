@@ -17,7 +17,7 @@ impl Metal {
 }
 
 impl Material for Metal {
-    fn scatter(&self, ray: &Ray, hit: &Hit) -> Option<(Ray, DVec3)> {
+    fn scatter(&self, ray: &Ray, hit: &Hit) -> Option<(DVec3, Option<Ray>)> {
         let reflected = ray.direction.reflect(hit.normal);
         let mut direction = reflected + self.fuzz * random_unit_vector();
 
@@ -25,6 +25,6 @@ impl Material for Metal {
             direction = reflected;
         }
 
-        Some((Ray::new(hit.point, direction), self.albedo))
+        Some((self.albedo, Some(Ray::new(hit.point, direction))))
     }
 }

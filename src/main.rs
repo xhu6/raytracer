@@ -5,45 +5,25 @@ mod random;
 mod ray;
 mod vec;
 
-use crate::{
-    camera::Camera,
-    hittable::{HittableList, Sphere},
-    material::{Custom, Dielectric, Lambertian, Material, Metal},
-    random::random_colour,
-};
+use crate::{camera::Camera, hittable::HittableList};
 
 use camera::CameraParams;
-use core::f64;
 use glam::{dvec3, DVec3};
-use std::{sync::Arc, time::Instant};
+use hittable::Fractal;
+use std::time::Instant;
 
 fn main() {
-    // Make RNG deterministic
-    fastrand::seed(0);
-
-    let glass = Arc::new(Dielectric::new(1.5));
-    let ground = Arc::new(Lambertian::new(dvec3(0.9, 0.9, 0.9)));
-    let surface = Arc::new(Lambertian::new(dvec3(0.0, 0.5, 0.5)));
-    let custom = Arc::new(Custom::new());
-    let diamond = Arc::new(Dielectric::new(2.417));
-
     let mut world = HittableList::new();
 
-    world.add(Sphere::new(
-        dvec3(0.0, -1000.0, 0.0),
-        1000.0,
-        custom.clone(),
-    ));
-    world.add(Sphere::new(dvec3(1.0, 1.0, 0.0), 1.0, diamond.clone()));
-    world.add(Sphere::new(dvec3(-1.0, 1.0, 0.0), 1.0, surface.clone()));
+    world.add(Fractal::new());
 
     let mut params = CameraParams::default();
 
     params.width = 1920;
     params.height = 1080;
-    params.position = dvec3(0.0, 4.0, -4.0);
-    params.forward = (dvec3(0.0, 0.0, 0.0) - params.position).normalize();
-    params.samples_per_pixel = 1;
+    params.position = dvec3(1.0, 0.0, 2.0);
+    params.forward = (DVec3::ZERO - params.position).normalize();
+    params.samples_per_pixel = 8;
 
     let cam = Camera::from(&params);
 

@@ -16,7 +16,7 @@ impl Lambertian {
 
 impl Material for Lambertian {
     // Doesn't use input ray
-    fn scatter(&self, _ray: &Ray, hit: &Hit) -> Option<(Ray, DVec3)> {
+    fn scatter(&self, _ray: &Ray, hit: &Hit) -> Option<(DVec3, Option<Ray>)> {
         let mut direction = hit.normal + random_unit_vector();
 
         // Avoid problems with normalising later
@@ -24,6 +24,6 @@ impl Material for Lambertian {
             direction = hit.normal;
         }
 
-        Some((Ray::new(hit.point, direction), self.albedo))
+        Some((self.albedo, Some(Ray::new(hit.point, direction))))
     }
 }

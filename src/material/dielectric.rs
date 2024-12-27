@@ -21,7 +21,7 @@ impl Dielectric {
 }
 
 impl Material for Dielectric {
-    fn scatter(&self, ray: &Ray, hit: &Hit) -> Option<(Ray, DVec3)> {
+    fn scatter(&self, ray: &Ray, hit: &Hit) -> Option<(DVec3, Option<Ray>)> {
         // Assume surrounding medium is 1.0 (air)
         // eta is the ratio of the refractive indexes
         let eta = if hit.front_face {
@@ -41,6 +41,6 @@ impl Material for Dielectric {
                 ray.direction.refract(hit.normal, eta)
             };
 
-        Some((Ray::new(hit.point, direction), DVec3::ONE))
+        Some((DVec3::ONE, Some(Ray::new(hit.point, direction))))
     }
 }
