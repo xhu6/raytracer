@@ -9,13 +9,13 @@ use crate::{camera::Camera, hittable::HittableList};
 
 use camera::CameraParams;
 use glam::{dvec3, DVec3};
-use hittable::Fractal;
+use hittable::Mandelbulb;
 use std::time::Instant;
 
 fn main() {
     let mut world = HittableList::new();
 
-    world.add(Fractal::new());
+    world.add(Mandelbulb::new());
 
     let mut params = CameraParams::default();
 
