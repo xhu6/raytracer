@@ -16,15 +16,22 @@ pub struct Camera {
     defocus_u: DVec3,
     defocus_v: DVec3,
     top_left: DVec3,
+
+    // Image dimensions
     width: u32,
     height: u32,
+
+    // Anti-aliasing
     samples_per_pixel: u32,
+
+    // Ray bounce limit
     max_depth: u32,
+
+    // Gamma
+    gamma: f64,
 }
 
-fn linear_to_gamma(data: f64) -> f64 {
-    let gamma = 2.0;
-
+fn linear_to_gamma(data: f64, gamma: f64) -> f64 {
     if data > 0.0 {
         data.powf(1.0 / gamma)
     } else {
@@ -32,11 +39,10 @@ fn linear_to_gamma(data: f64) -> f64 {
     }
 }
 
-// NOTE: Shouldn't be here but will keep for now
-fn to_rgb(data: DVec3) -> Rgb<u8> {
+fn to_rgb(data: DVec3, gamma: f64) -> Rgb<u8> {
     Rgb(data
         .to_array()
-        .map(|x| (linear_to_gamma(x).clamp(0.0, 0.999) * 256.0).floor() as u8))
+        .map(|x| (linear_to_gamma(x, gamma).clamp(0.0, 0.999) * 256.0).floor() as u8))
 }
 
 impl Camera {
@@ -51,6 +57,7 @@ impl Camera {
         height: u32,
         samples_per_pixel: u32,
         max_depth: u32,
+        gamma: f64,
     ) -> Self {
         let aspect_ratio = width as f64 / height as f64;
         let viewport_height = (vfov.to_radians() / 2.0).tan() * 2.0 * focal_length;
@@ -82,22 +89,8 @@ impl Camera {
             height,
             samples_per_pixel,
             max_depth,
+            gamma,
         }
-    }
-
-    pub fn from(params: &CameraParams) -> Self {
-        Camera::new(
-            params.vfov,
-            params.defocus_angle,
-            params.focal_length,
-            params.position,
-            params.forward,
-            params.up,
-            params.width,
-            params.height,
-            params.samples_per_pixel,
-            params.max_depth,
-        )
     }
 
     pub fn sample_defocus_disk(&self) -> DVec3 {
@@ -113,9 +106,11 @@ impl Camera {
     }
 
     pub fn sample(&self, world: &HittableList, ray: &Ray, depth: u32) -> DVec3 {
+        let ambient = DVec3::ZERO;
+
         // No light after depth exceeded
         if depth <= 0 {
-            return DVec3::ZERO;
+            return ambient;
         }
 
         // Avoid intersecting same object by using a small value
@@ -128,7 +123,7 @@ impl Camera {
                 }
             }
 
-            return DVec3::ZERO;
+            return ambient;
         }
 
         // Background
@@ -154,7 +149,7 @@ impl Camera {
             out += self.sample(world, &ray, self.max_depth);
         }
 
-        to_rgb(out / self.samples_per_pixel as f64)
+        to_rgb(out / self.samples_per_pixel as f64, self.gamma)
     }
 
     pub fn render(&self, world: &HittableList) -> RgbImage {
@@ -181,6 +176,7 @@ pub struct CameraParams {
     pub height: u32,
     pub samples_per_pixel: u32,
     pub max_depth: u32,
+    pub gamma: f64,
 }
 
 impl Default for CameraParams {
@@ -196,17 +192,25 @@ impl Default for CameraParams {
             height: 1024,
             samples_per_pixel: 16,
             max_depth: 64,
+            gamma: 2.0,
         }
     }
 }
 
-impl CameraParams {
-    pub fn to_camera(&self) -> Camera {
-        Camera::from(self)
+impl From<&CameraParams> for Camera {
+    fn from(value: &CameraParams) -> Self {
+        Camera::new(
+            value.vfov,
+            value.defocus_angle,
+            value.focal_length,
+            value.position,
+            value.forward,
+            value.up,
+            value.width,
+            value.height,
+            value.samples_per_pixel,
+            value.max_depth,
+            value.gamma,
+        )
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
 }
