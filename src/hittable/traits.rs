@@ -1,5 +1,4 @@
 use super::hit::Hit;
-
 use crate::ray::Ray;
 
 pub trait Hittable: Send + Sync {

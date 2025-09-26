@@ -1,7 +1,8 @@
-use crate::material::Material;
+use std::sync::Arc;
 
 use glam::DVec3;
-use std::sync::Arc;
+
+use crate::material::Material;
 
 pub struct Hit {
     pub point: DVec3,

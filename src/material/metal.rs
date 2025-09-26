@@ -1,8 +1,10 @@
-use super::traits::Material;
-
-use crate::{hittable::Hit, random::random_unit_vector, ray::Ray, vec::approx_zero};
-
 use glam::DVec3;
+
+use super::traits::Material;
+use crate::hittable::Hit;
+use crate::random::random_unit_vector;
+use crate::ray::Ray;
+use crate::vec::approx_zero;
 
 pub struct Metal {
     albedo: DVec3,

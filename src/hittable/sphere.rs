@@ -1,10 +1,11 @@
-use super::hit::Hit;
-use super::traits::Hittable;
-
-use crate::{material::Material, ray::Ray};
+use std::sync::Arc;
 
 use glam::DVec3;
-use std::sync::Arc;
+
+use super::hit::Hit;
+use super::traits::Hittable;
+use crate::material::Material;
+use crate::ray::Ray;
 
 pub struct Sphere {
     position: DVec3,
@@ -42,26 +43,21 @@ impl Hittable for Sphere {
         let sqrtd = discriminant.sqrt();
         let roots = [(h - sqrtd) / a, (h + sqrtd) / a];
 
-        roots
-            .iter()
-            .filter(|x| (min..max).contains(x))
-            .next()
-            .copied()
-            .map(|x| {
-                let point = ray.at(x);
-                let outward_normal = (point - self.position).normalize();
-                let front_face = outward_normal.dot(ray.direction) < 0.0;
-                Hit {
-                    point,
-                    distance: x,
-                    normal: if front_face {
-                        outward_normal
-                    } else {
-                        -outward_normal
-                    },
-                    front_face,
-                    material: self.material.clone(),
-                }
-            })
+        roots.iter().find(|x| (min..max).contains(x)).map(|&x| {
+            let point = ray.at(x);
+            let outward_normal = (point - self.position).normalize();
+            let front_face = outward_normal.dot(ray.direction) < 0.0;
+            Hit {
+                point,
+                distance: x,
+                normal: if front_face {
+                    outward_normal
+                } else {
+                    -outward_normal
+                },
+                front_face,
+                material: self.material.clone(),
+            }
+        })
     }
 }

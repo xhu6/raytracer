@@ -1,9 +1,8 @@
+use std::sync::Arc;
+
 use super::hit::Hit;
 use super::traits::Hittable;
-
 use crate::ray::Ray;
-
-use std::sync::Arc;
 
 pub struct HittableList {
     pub objects: Vec<Arc<dyn Hittable>>,
@@ -42,7 +41,7 @@ impl Hittable for HittableList {
         let mut closest = max;
         let mut out = None;
 
-        for object in self.objects.iter() {
+        for object in &self.objects {
             if let Some(hit) = object.hit(ray, min, closest) {
                 closest = hit.distance;
                 out = Some(hit);

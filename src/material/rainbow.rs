@@ -1,9 +1,10 @@
 use glam::DVec3;
 
+use crate::hittable::Hit;
 use crate::material::Material;
 use crate::ray::Ray;
-use crate::hittable::Hit;
 
+#[derive(Default)]
 pub struct Rainbow {}
 
 impl Rainbow {
@@ -14,6 +15,6 @@ impl Rainbow {
 
 impl Material for Rainbow {
     fn scatter(&self, _ray: &Ray, hit: &Hit) -> Option<(DVec3, Option<Ray>)> {
-        Some((hit.point.map(|x| x.sin()).normalize(), None))
+        Some((hit.point.map(f64::sin).normalize(), None))
     }
 }

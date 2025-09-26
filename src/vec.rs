@@ -21,11 +21,12 @@ pub fn approx_eq(a: DVec3, b: DVec3) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     use core::f64;
-    use glam::dvec3;
     use std::f64::consts::PI;
+
+    use glam::dvec3;
+
+    use super::*;
 
     #[test]
     fn zero_approx_zero() {

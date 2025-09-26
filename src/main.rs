@@ -1,13 +1,13 @@
-use glam::{dvec3, DVec3};
 use std::time::Instant;
 
+use glam::{dvec3, DVec3};
 use raytracer::camera::{Camera, CameraParams};
 use raytracer::hittable::{HittableList, Mandelbulb};
 
 fn main() {
     let mut world = HittableList::new();
 
-    world.add(Mandelbulb::new());
+    world.add(Mandelbulb::new(5.0));
 
     let mut params = CameraParams::default();
 
@@ -23,7 +23,7 @@ fn main() {
     let img = cam.render(&world);
     let duration = time.elapsed();
 
-    println!("Took {:.2?}", duration);
+    println!("Took {duration:.2?}");
 
     img.save("out.png").unwrap();
 }

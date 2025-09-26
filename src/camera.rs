@@ -1,12 +1,11 @@
-use crate::{
-    hittable::{Hittable, HittableList},
-    random::{random_on_disc, random_square},
-    ray::Ray,
-};
-
 use core::f64;
+
 use glam::{dvec3, DVec3};
 use image::{Rgb, RgbImage};
+
+use crate::hittable::{Hittable, HittableList};
+use crate::random::{random_on_disc, random_square};
+use crate::ray::Ray;
 
 #[derive(Debug)]
 pub struct Camera {
@@ -45,19 +44,48 @@ fn to_rgb(data: DVec3, gamma: f64) -> Rgb<u8> {
         .map(|x| (linear_to_gamma(x, gamma).clamp(0.0, 0.999) * 256.0).floor() as u8))
 }
 
+fn sample(world: &HittableList, ray: &Ray, depth: u32) -> DVec3 {
+    let ambient = DVec3::ZERO;
+
+    // No light after depth exceeded
+    if depth == 0 {
+        return ambient;
+    }
+
+    // Avoid intersecting same object by using a small value
+    if let Some(hit) = world.hit(ray, 1e-9, f64::MAX) {
+        if let Some((attenuation, potential_ray)) = hit.material.scatter(ray, &hit) {
+            if let Some(new_ray) = potential_ray {
+                return attenuation * sample(world, &new_ray, depth - 1);
+            }
+
+            return attenuation;
+        }
+
+        return ambient;
+    }
+
+    // Background
+    // let a = 0.5 * (ray.direction.y + 1.0);
+    // DVec3::ONE.lerp(dvec3(0.5, 0.7, 1.0), a)
+    DVec3::ZERO
+}
+
 impl Camera {
     pub fn new(
-        vfov: f64,
-        defocus_angle: f64,
-        focal_length: f64,
-        position: DVec3,
-        forward: DVec3,
-        up: DVec3,
-        width: u32,
-        height: u32,
-        samples_per_pixel: u32,
-        max_depth: u32,
-        gamma: f64,
+        &CameraParams {
+            vfov,
+            defocus_angle,
+            focal_length,
+            position,
+            forward,
+            up,
+            width,
+            height,
+            samples_per_pixel,
+            max_depth,
+            gamma,
+        }: &CameraParams,
     ) -> Self {
         let aspect_ratio = width as f64 / height as f64;
         let viewport_height = (vfov.to_radians() / 2.0).tan() * 2.0 * focal_length;
@@ -93,46 +121,19 @@ impl Camera {
         }
     }
 
-    pub fn sample_defocus_disk(&self) -> DVec3 {
+    fn sample_defocus_disk(&self) -> DVec3 {
         let scale = random_on_disc();
         self.position + scale.0 * self.defocus_u + scale.1 * self.defocus_v
     }
 
     // Values are between [0, 1]
-    pub fn get_ray(&self, (u, v): (f64, f64)) -> Ray {
+    fn get_ray(&self, (u, v): (f64, f64)) -> Ray {
         let end = self.top_left + self.viewport_u * u + self.viewport_v * v;
         let start = self.sample_defocus_disk();
         Ray::new(start, end - start)
     }
 
-    pub fn sample(&self, world: &HittableList, ray: &Ray, depth: u32) -> DVec3 {
-        let ambient = DVec3::ZERO;
-
-        // No light after depth exceeded
-        if depth <= 0 {
-            return ambient;
-        }
-
-        // Avoid intersecting same object by using a small value
-        if let Some(hit) = world.hit(ray, 1e-9, f64::MAX) {
-            if let Some((attenuation, potential_ray)) = hit.material.scatter(ray, &hit) {
-                if let Some(new_ray) = potential_ray {
-                    return attenuation * self.sample(world, &new_ray, depth - 1);
-                } else {
-                    return attenuation;
-                }
-            }
-
-            return ambient;
-        }
-
-        // Background
-        // let a = 0.5 * (ray.direction.y + 1.0);
-        // DVec3::ONE.lerp(dvec3(0.5, 0.7, 1.0), a)
-        DVec3::ZERO
-    }
-
-    pub fn get_uv(&self, x: u32, y: u32) -> (f64, f64) {
+    fn get_uv(&self, x: u32, y: u32) -> (f64, f64) {
         let (dx, dy) = random_square();
         (
             (x as f64 + 0.5 + dx) / self.width as f64,
@@ -140,13 +141,13 @@ impl Camera {
         )
     }
 
-    pub fn render_pixel(&self, world: &HittableList, x: u32, y: u32) -> Rgb<u8> {
+    fn render_pixel(&self, world: &HittableList, x: u32, y: u32) -> Rgb<u8> {
         let mut out = DVec3::ZERO;
 
         for _ in 0..self.samples_per_pixel {
             let uv = self.get_uv(x, y);
             let ray = self.get_ray(uv);
-            out += self.sample(world, &ray, self.max_depth);
+            out += sample(world, &ray, self.max_depth);
         }
 
         to_rgb(out / self.samples_per_pixel as f64, self.gamma)
@@ -199,18 +200,6 @@ impl Default for CameraParams {
 
 impl From<&CameraParams> for Camera {
     fn from(value: &CameraParams) -> Self {
-        Camera::new(
-            value.vfov,
-            value.defocus_angle,
-            value.focal_length,
-            value.position,
-            value.forward,
-            value.up,
-            value.width,
-            value.height,
-            value.samples_per_pixel,
-            value.max_depth,
-            value.gamma,
-        )
+        Camera::new(value)
     }
 }

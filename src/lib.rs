@@ -4,4 +4,3 @@ pub mod material;
 pub mod random;
 pub mod ray;
 pub mod vec;
-

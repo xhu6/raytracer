@@ -1,21 +1,22 @@
-use super::hit::Hit;
-use super::traits::Hittable;
-
-use crate::material::Material;
-use crate::ray::Ray;
-use crate::material::Rainbow;
+use std::sync::Arc;
 
 use glam::{dvec3, DVec3};
-use std::sync::Arc;
+
+use super::hit::Hit;
+use super::traits::Hittable;
+use crate::material::{Material, Rainbow};
+use crate::ray::Ray;
 
 pub struct Mandelbulb {
     material: Arc<dyn Material>,
+    power: f64,
 }
 
 impl Mandelbulb {
-    pub fn new() -> Self {
+    pub fn new(power: f64) -> Self {
         Mandelbulb {
             material: Arc::new(Rainbow::new()),
+            power,
         }
     }
 
@@ -23,7 +24,6 @@ impl Mandelbulb {
         let mut z = c;
         let mut dr = 1.0;
         let mut r = 0.0;
-        let power = 5.0;
 
         for _ in 0..32 {
             r = z.length();
@@ -34,11 +34,11 @@ impl Mandelbulb {
 
             let mut theta = (z.z / r).acos();
             let mut phi = (z.y / z.x).atan();
-            dr = r.powf(power - 1.0) * (power as f64) * dr + 1.0;
+            dr = r.powf(self.power - 1.0) * self.power * dr + 1.0;
 
-            let zr = r.powf(power);
-            theta *= power as f64;
-            phi *= power as f64;
+            let zr = r.powf(self.power);
+            theta *= self.power;
+            phi *= self.power;
 
             z = zr
                 * dvec3(

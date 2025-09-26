@@ -1,8 +1,14 @@
-use super::traits::Material;
-
-use crate::{hittable::Hit, ray::Ray};
-
 use glam::DVec3;
+
+use super::traits::Material;
+use crate::hittable::Hit;
+use crate::ray::Ray;
+
+fn reflectance(cos_theta: f64, eta: f64) -> f64 {
+    let tmp = (1.0 - eta) / (1.0 + eta);
+    let r_0 = tmp * tmp;
+    r_0 + (1.0 - r_0) * (1.0 - cos_theta).powi(5)
+}
 
 pub struct Dielectric {
     refractive_index: f64,
@@ -11,12 +17,6 @@ pub struct Dielectric {
 impl Dielectric {
     pub fn new(refractive_index: f64) -> Self {
         Dielectric { refractive_index }
-    }
-
-    pub fn reflectance(&self, cos_theta: f64, eta: f64) -> f64 {
-        let tmp = (1.0 - eta) / (1.0 + eta);
-        let r_0 = tmp * tmp;
-        r_0 + (1.0 - r_0) * (1.0 - cos_theta).powi(5)
     }
 }
 
@@ -34,12 +34,11 @@ impl Material for Dielectric {
         let cos_theta = (-ray.direction.dot(hit.normal)).min(1.0);
         let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
 
-        let direction =
-            if eta * sin_theta > 1.0 || self.reflectance(cos_theta, eta) > fastrand::f64() {
-                ray.direction.reflect(hit.normal)
-            } else {
-                ray.direction.refract(hit.normal, eta)
-            };
+        let direction = if eta * sin_theta > 1.0 || reflectance(cos_theta, eta) > fastrand::f64() {
+            ray.direction.reflect(hit.normal)
+        } else {
+            ray.direction.refract(hit.normal, eta)
+        };
 
         Some((DVec3::ONE, Some(Ray::new(hit.point, direction))))
     }
