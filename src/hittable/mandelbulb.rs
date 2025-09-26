@@ -3,28 +3,10 @@ use super::traits::Hittable;
 
 use crate::material::Material;
 use crate::ray::Ray;
+use crate::material::Rainbow;
 
 use glam::{dvec3, DVec3};
 use std::sync::Arc;
-
-pub struct DebugMaterial {}
-
-impl DebugMaterial {
-    fn new() -> Self {
-        Self {}
-    }
-}
-
-impl Material for DebugMaterial {
-    fn scatter(&self, _ray: &Ray, hit: &Hit) -> Option<(DVec3, Option<Ray>)> {
-        // Some((hit.point.map(|x| x.sin()).normalize(), None))
-        Some((
-            DVec3::splat(1.0 - hit.distance)
-                * dvec3(1.0, 1.0, 1.0).lerp(dvec3(0.0, 0.0, 0.8), hit.distance),
-            None,
-        ))
-    }
-}
 
 pub struct Mandelbulb {
     material: Arc<dyn Material>,
@@ -33,7 +15,7 @@ pub struct Mandelbulb {
 impl Mandelbulb {
     pub fn new() -> Self {
         Mandelbulb {
-            material: Arc::new(DebugMaterial::new()),
+            material: Arc::new(Rainbow::new()),
         }
     }
 

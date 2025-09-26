@@ -23,7 +23,7 @@ fn main() {
     params.height = 1080;
     params.position = dvec3(1.0, 0.0, 2.0);
     params.forward = (DVec3::ZERO - params.position).normalize();
-    params.samples_per_pixel = 8;
+    params.samples_per_pixel = 1;
 
     let cam = Camera::from(&params);
 

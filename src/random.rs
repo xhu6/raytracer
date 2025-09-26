@@ -6,10 +6,12 @@ pub fn nothing() -> (f64, f64) {
 }
 
 pub fn random_square() -> (f64, f64) {
+    // Random between [-0.5, 0.5]
     (fastrand::f64() - 0.5, fastrand::f64() - 0.5)
 }
 
 pub fn random_on_disc() -> (f64, f64) {
+    // Randomly uniformly over unit disc
     let theta = fastrand::f64() * 2.0 * PI;
     let radius = fastrand::f64().sqrt();
 
