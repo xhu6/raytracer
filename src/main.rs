@@ -1,16 +1,8 @@
-mod camera;
-mod hittable;
-mod material;
-mod random;
-mod ray;
-mod vec;
-
-use crate::{camera::Camera, hittable::HittableList};
-
-use camera::CameraParams;
 use glam::{dvec3, DVec3};
-use hittable::Mandelbulb;
 use std::time::Instant;
+
+use raytracer::camera::{Camera, CameraParams};
+use raytracer::hittable::{HittableList, Mandelbulb};
 
 fn main() {
     let mut world = HittableList::new();
