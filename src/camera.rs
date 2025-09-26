@@ -66,9 +66,9 @@ fn sample(world: &HittableList, ray: &Ray, depth: u32) -> DVec3 {
     }
 
     // Background
-    // let a = 0.5 * (ray.direction.y + 1.0);
-    // DVec3::ONE.lerp(dvec3(0.5, 0.7, 1.0), a)
-    DVec3::ZERO
+    let a = 0.5 * (ray.direction.y + 1.0);
+    DVec3::ONE.lerp(dvec3(0.5, 0.7, 1.0), a)
+    // DVec3::ZERO
 }
 
 impl Camera {

@@ -7,3 +7,5 @@ Lots of thanks to...
 
 ![Ray traced image of mandelbulb](img/mandelbulb3.png)
 
+![Ray traced image of spheres](img/weekend.png)
+
